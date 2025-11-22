@@ -9,6 +9,11 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import io.github.towerdefense.Main;
 import io.github.towerdefense.GameState;
 import io.github.towerdefense.logic.Raridade;
+import io.github.towerdefense.BattleController;
+import io.github.towerdefense.logic.Batalha;
+import io.github.towerdefense.logic.Personagem;
+import io.github.towerdefense.logic.Torre;
+import java.util.List;
 
 public class DifficultyScreen extends BaseScreen {
 
@@ -23,9 +28,9 @@ public class DifficultyScreen extends BaseScreen {
 
         Label l = new Label("Escolha a Dificuldade", skin);
 
-        easy = new TextButton("Fácil", skin);
+        easy = new TextButton("Facil", skin);
         normal = new TextButton("Normal", skin);
-        hard = new TextButton("Difícil", skin);
+        hard = new TextButton("Dificil", skin);
 
         t.add(l).padBottom(20);
         t.row();
@@ -41,20 +46,32 @@ public class DifficultyScreen extends BaseScreen {
         easy.addListener(new ClickListener() {
             @Override public void clicked(InputEvent event, float x, float y) {
                 GameState.I().setDificuldade(Raridade.COMUM);
-                game.setScreen(new GameScreen(game));
+                startGame();
             }
         });
         normal.addListener(new ClickListener() {
             @Override public void clicked(InputEvent event, float x, float y) {
                 GameState.I().setDificuldade(Raridade.RARO);
-                game.setScreen(new GameScreen(game));
+                startGame();
             }
         });
         hard.addListener(new ClickListener() {
             @Override public void clicked(InputEvent event, float x, float y) {
                 GameState.I().setDificuldade(Raridade.EPICO);
-                game.setScreen(new GameScreen(game));
+                stage.clear();
+                startGame();
             }
         });
+    }
+
+    private void startGame() {
+        List<Personagem> players = GameState.I().createPlayersList();
+        List<Personagem> enemies = Torre.gerarAndar(GameState.I().getAndarAtual(), players.size());
+        
+        Batalha batalha = new Batalha(players, enemies);
+        BattleController controller = new BattleController(batalha);
+        controller.start();
+        
+        game.setScreen(new GameScreen(game, controller));
     }
 }

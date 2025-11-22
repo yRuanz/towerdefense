@@ -1,6 +1,5 @@
 package io.github.towerdefense.screens;
 
-import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.scenes.scene2d.ui.Table;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
@@ -17,9 +16,6 @@ import io.github.towerdefense.logic.Torre;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Tela única do jogo de turnos.
- */
 public class GameScreen extends BaseScreen {
 
     private BattleController controller;
@@ -30,13 +26,23 @@ public class GameScreen extends BaseScreen {
     private TextButton btnSkill;
     private TextButton btnPassar;
 
-    // Seleção de inimigos
     private List<TextButton> enemyButtons;
     private int selectedEnemy = -1;
 
+    // Construtor que recebe controller já pronto (usado pelo DifficultyScreen)
+    public GameScreen(Main game, BattleController controller) {
+        super(game, false);
+        this.controller = controller;
+        createUI();
+        setupListeners();
+    }
+
+    // Construtor alternativo (se precisar)
     public GameScreen(Main game) {
-        super(game);
+        super(game, false);
         initBatalha();
+        createUI();
+        setupListeners();
     }
 
     private void initBatalha() {
@@ -50,28 +56,25 @@ public class GameScreen extends BaseScreen {
 
     @Override
     protected void createUI() {
-
         Table root = new Table();
         root.setFillParent(true);
         stage.addActor(root);
 
-        // --- STATUS ---
         statusLabel = new Label("Iniciando combate...", skin);
         root.add(statusLabel).padBottom(30);
         root.row();
 
-        // --- PAINEL DE INIMIGOS ---
         Table enemyTable = new Table();
         enemyButtons = new ArrayList<>();
 
         List<Personagem> enemies = controller.getEnemies();
         for (int i = 0; i < enemies.size(); i++) {
             final int idx = i;
-
             TextButton btn = new TextButton(enemies.get(i).getNome(), skin);
 
             btn.addListener(new ClickListener() {
-                @Override public void clicked(InputEvent event, float x, float y) {
+                @Override 
+                public void clicked(InputEvent event, float x, float y) {
                     selectedEnemy = idx;
                     updateEnemySelection();
                 }
@@ -84,7 +87,6 @@ public class GameScreen extends BaseScreen {
         root.add(enemyTable).padBottom(20);
         root.row();
 
-        // --- BOTÕES DO JOGADOR ---
         Table btnTable = new Table();
 
         btnAtacar = new TextButton("Atacar", skin);
@@ -95,56 +97,51 @@ public class GameScreen extends BaseScreen {
         btnTable.add(btnAtacar).width(160).pad(5);
         btnTable.add(btnDefender).width(160).pad(5);
         btnTable.add(btnSkill).width(160).pad(5);
-
         btnTable.row();
         btnTable.add(btnPassar).colspan(3).width(300).padTop(10);
 
         root.add(btnTable);
     }
 
-    /** Atualiza destaque do inimigo selecionado */
     private void updateEnemySelection() {
         for (int i = 0; i < enemyButtons.size(); i++) {
             if (i == selectedEnemy)
-                enemyButtons.get(i).setColor(0, 1, 0, 1); // Verde
+                enemyButtons.get(i).setColor(0, 1, 0, 1);
             else
-                enemyButtons.get(i).setColor(1, 1, 1, 1); // Normal
+                enemyButtons.get(i).setColor(1, 1, 1, 1);
         }
     }
 
     @Override
     protected void setupListeners() {
-
-        // --- ATACAR ---
         btnAtacar.addListener(new ClickListener() {
-            @Override public void clicked(InputEvent event, float x, float y) {
-
+            @Override 
+            public void clicked(InputEvent event, float x, float y) {
                 if (!controller.isPlayerTurn()) return;
                 if (selectedEnemy < 0) return;
-
                 controller.playerAttack(selectedEnemy);
             }
         });
 
-        // --- DEFENDER ---
         btnDefender.addListener(new ClickListener() {
-            @Override public void clicked(InputEvent event, float x, float y) {
+            @Override 
+            public void clicked(InputEvent event, float x, float y) {
                 if (!controller.isPlayerTurn()) return;
                 controller.playerDefend();
             }
         });
 
-        // --- SKILL ---
         btnSkill.addListener(new ClickListener() {
-            @Override public void clicked(InputEvent event, float x, float y) {
+            @Override 
+            public void clicked(InputEvent event, float x, float y) {
                 if (!controller.isPlayerTurn()) return;
                 controller.playerSkill();
             }
         });
 
-        // --- PASSAR ---
         btnPassar.addListener(new ClickListener() {
-            @Override public void clicked(InputEvent event, float x, float y) {
+            @Override 
+            public void clicked(InputEvent event, float x, float y) {
                 if (!controller.isPlayerTurn()) return;
                 controller.playerPass();
             }
@@ -153,18 +150,13 @@ public class GameScreen extends BaseScreen {
 
     @Override
     public void render(float delta) {
-        ScreenUtils.clear(0, 0, 0, 1);
-
         controller.update();
 
-    // Resetar seleção se inimigo morreu
-    if (selectedEnemy >= controller.getEnemies().size()) {
-        selectedEnemy = -1;
-        updateEnemySelection();
-    }
+        if (selectedEnemy >= controller.getEnemies().size()) {
+            selectedEnemy = -1;
+            updateEnemySelection();
+        }
 
-
-        // Atualizar interface
         boolean playerTurn = controller.isPlayerTurn();
 
         btnAtacar.setDisabled(!playerTurn);
@@ -177,9 +169,7 @@ public class GameScreen extends BaseScreen {
             updateEnemySelection();
         }
 
-        // HUD
         StringBuilder sb = new StringBuilder();
-
         Personagem atual = controller.getCurrent();
         sb.append("Turno de: ").append(atual != null ? atual.getNome() : "Ninguém").append("\n\n");
 
@@ -193,19 +183,15 @@ public class GameScreen extends BaseScreen {
             sb.append(e.getNome()).append("  HP: ").append(e.getVida()).append("\n");
         }
 
-    // Atualizar cor ou remover botão de inimigo morto
-    for (int i = 0; i < controller.getEnemies().size(); i++) {
-        Personagem e = controller.getEnemies().get(i);
-
-        if (e.getVida() <= 0) {
-            enemyButtons.get(i).setDisabled(true);
-            enemyButtons.get(i).setColor(0.5f, 0.5f, 0.5f, 1); // cinza
+        for (int i = 0; i < controller.getEnemies().size(); i++) {
+            Personagem e = controller.getEnemies().get(i);
+            if (e.getVida() <= 0) {
+                enemyButtons.get(i).setDisabled(true);
+                enemyButtons.get(i).setColor(0.5f, 0.5f, 0.5f, 1);
+            }
         }
-    }
-
 
         statusLabel.setText(sb.toString());
-
         super.render(delta);
     }
 }
