@@ -1,79 +1,47 @@
 package io.github.towerdefense.screens;
 
+import com.badlogic.gdx.scenes.scene2d.ui.Table;
+import com.badlogic.gdx.scenes.scene2d.ui.TextButton;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.utils.ScreenUtils;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 
 import io.github.towerdefense.Main;
-import io.github.towerdefense.ui.Button;
 
-public class MenuScreen implements Screen {
+public class MenuScreen extends BaseScreen {
 
-    Main game;
+    private TextButton playButton, exitButton;
 
-    Button playButton;
-    Button exitButton;
-
-    public MenuScreen(Main game){
-        this.game = game;
-
-        // Texturas
-        Texture playInactive = new Texture("botaoPlay_Inactive.png");
-        Texture playActive = new Texture("botaoPlay_Active.png");
-        Texture exitInactive = new Texture("botaoExit_Inactive.png");
-        Texture exitActive = new Texture("botaoExit_Active.png");
-
-        // Centralização
-        float centerX = (Gdx.graphics.getWidth() / 2f) - (playInactive.getWidth() / 2f);
-
-        float playY = (Gdx.graphics.getHeight() / 2f) + 50;
-        float exitY = (Gdx.graphics.getHeight() / 2f) - 100;
-
-        // Cria os botões reutilizando a classe Button
-        playButton = new Button(playInactive, playActive, centerX, playY);
-        exitButton = new Button(exitInactive, exitActive, centerX, exitY);
+    public MenuScreen(Main game) {
+        super(game);
     }
 
     @Override
-    public void render(float delta) {
+    protected void createUI() {
+        Table t = new Table();
+        t.setFillParent(true);
 
-        ScreenUtils.clear(0,0,0,1);
+        playButton = new TextButton("Jogar", skin);
+        exitButton = new TextButton("Sair", skin);
 
-        float mouseX = Gdx.input.getX();
-        float mouseY = Gdx.graphics.getHeight() - Gdx.input.getY();
+        t.add(playButton).width(200).pad(10).row();
+        t.add(exitButton).width(200).pad(10);
 
-        // Atualiza hover
-        playButton.update(mouseX, mouseY);
-        exitButton.update(mouseX, mouseY);
-
-        game.batch.begin();
-        playButton.draw(game.batch);
-        exitButton.draw(game.batch);
-        game.batch.end();
-
-        // Clique -> ir para outra tela
-        if (playButton.isClicked()) {
-            System.out.println("Play clicado!");
-            game.setScreen(new CaractersScreen(game));
-        }
-
-        // Clique -> sair do jogo
-        if (exitButton.isClicked()) {
-            System.out.println("Exit clicado!");
-            Gdx.app.exit();
-        }
+        stage.addActor(t);
     }
 
     @Override
-    public void dispose() {
-        playButton.dispose();
-        exitButton.dispose();
-    }
+    protected void setupListeners() {
+        playButton.addListener(new ClickListener() {
+            @Override public void clicked(InputEvent event, float x, float y) {
+                game.setScreen(new DifficultyScreen(game));
+            }
+        });
 
-    @Override public void show() {}
-    @Override public void resize(int width, int height) {}
-    @Override public void pause() {}
-    @Override public void resume() {}
-    @Override public void hide() {}
+        exitButton.addListener(new ClickListener() {
+            @Override public void clicked(InputEvent event, float x, float y) {
+                Gdx.app.exit();
+            }
+        });
+    }
 }
